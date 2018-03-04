@@ -77,14 +77,20 @@ function storeData(data) {
     games = data.resultSets[0].rowSet;
     lineScore = scoreboard.resultSets[1].rowSet;
     lastMeeting = scoreboard.resultSets[3].rowSet; // get lastMeeting array in scoreboard object
+}
 
+function checkNoGames() {
     if ( games.length < 1 ) {
         window.alert("No games available today");
-        var noGames = document.createElement("h2");
+        var noGames = document.createElement("h1");
+        noGames.setAttribute("id", "no-games");
         noGames.appendChild( document.createTextNode("No games available") );
         document.getElementById("placeholder").appendChild(noGames);
-        return;
+
+        if ( document.getElementById("info") ) deleteInfo();
+        return true;
     }
+    return false;
 }
 
 /**
@@ -95,6 +101,7 @@ function storeData(data) {
 function getGames(data) {
 
     storeData(data);
+    if ( checkNoGames() ) return;
     populateDropdown();
     updateScore();
 }
@@ -131,13 +138,14 @@ function populateDropdown() {
  */
 function updateScore() {
     var dropdown = document.getElementById("dropdown");
+    if ( dropdown.value == "" ) dropdown.value = 0; // edge case when going from day w/ no games to day w/ games
     var selected = dropdown.value;
     var game = lastMeeting[selected];
     var awayName = game[9] + " " + game[10];
     var homeName = game[4] + " " + game[5];
 
     // delete info if existing
-    if ( document.getElementsByTagName("h2")[0] ) deleteInfo();
+    if ( document.getElementById("info") ) deleteInfo();
 
     // check if game hasn't started yet
     if ( games[selected][9] == 0 ) {
@@ -284,6 +292,7 @@ function genRecords(game) {
     table.appendChild(row);
     return table;
 }
+
 /**
  * use for creating table rows
  * @param {array} rowData - an array of strings for table data cells
@@ -345,10 +354,12 @@ function refresh(data) {
         document.getElementsByClassName("jsonp-script")[0].remove();
     }
     storeData(data);
-    updateScore();
+    if ( checkNoGames() ) return;
+    if ( document.getElementById("no-games") ) document.getElementById("no-games").remove(); // edge case
     clearDropdown();
     populateDropdown();
     dropdown.value = selectedGame;  //restore selected game in dropdown, to reflect displayed
+    updateScore();
 }
 
 // initiates upon loading page
