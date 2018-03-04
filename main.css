@@ -1,0 +1,132 @@
+html {
+    min-height: 100%;
+    position: relative;
+}
+
+body {
+   margin-top: 1rem;
+   margin-bottom: 2rem;
+   background-color: #DBDBDB;
+   text-align: center;
+   font-family: Roboto, "Arial Black", sans-serif;
+}
+
+h1 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+h2{
+    margin-top: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+p {
+    margin: 0.125rem;
+}
+
+select {
+    font-size: 2rem;
+    color: #00008b;
+    background-color: #F5F5F5;
+    border: hidden;
+    border-radius: 0.5rem;
+    margin-top: 0.5rem;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("dropdown-icon.png");
+    background-repeat: no-repeat;
+    background-size: 1.5rem;
+    background-position: 100% 50%;
+    padding-right: 2%;
+    padding-left: 5px;
+}
+
+.active {
+    color: #00008b;
+}
+
+.inactive {
+    color: red;
+}
+
+.buttons {
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+button {
+    color: #000000;
+    background-color: #B3B3B3;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    padding: 0.5rem 1rem;
+}
+
+button:hover {
+    background-color: #FFE88B;
+    transition: 0.2s;
+}
+
+button:active {
+    background-color:#FF811A;
+}
+
+#placeholder h1 {
+    display: inline-block;
+    margin-right: 0.3rem;
+    margin-left: 0.3rem;
+}
+
+.leading {
+    background-color: #6BC1FF5C;
+    padding: 0rem 0.2rem 0rem 0.2rem;
+    border-radius: 15%;
+}
+
+table {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#table-area {
+    overflow: auto;
+}
+
+#quarter-table {
+    font-size: 1.3rem;
+}
+
+#record-table {
+    border-collapse: collapse;
+}
+
+#record-table td {
+    background-color: #CECECE;
+    padding: 0.3rem;
+}
+
+td, th {
+    text-align: center;
+    padding:0.2rem;
+}
+
+th, tr:nth-child(even) {
+    background-color: #b1c6f8;
+}
+
+footer {
+    color: #B2BD8C;
+    font-size: 0.8rem;
+    padding-top: 1.25rem;
+}

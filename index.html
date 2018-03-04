@@ -1,0 +1,34 @@
+<!DOCTYPE <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>NBA Box Scores</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+</head>
+
+<body>
+    <h1>Box Scores</h1>
+    <p>Get a box score from today's games</p>
+    <form name="games">
+        <select id="dropdown" onchange="updateScore()"></select>
+    </form>
+    <div class="buttons" >
+        <button type="button" onclick="requestRefresh()">Update scores</button>
+    </div>
+    <div id="placeholder"></div>
+
+    <footer> 
+        Copyright &copy; AC. All rights reserved.
+        <br>
+        Data retrieved from stats.nba.com
+
+    </footer>
+   
+    <script type="text/javascript" src="main.js"></script>
+
+</body>
+</html>
