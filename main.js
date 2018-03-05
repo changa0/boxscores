@@ -81,10 +81,10 @@ function storeData(data) {
 
 function checkNoGames() {
     if ( games.length < 1 ) {
-        window.alert("No games available today");
+        displayAlert("No games available today");
         var noGames = document.createElement("h1");
         noGames.setAttribute("id", "no-games");
-        noGames.appendChild( document.createTextNode("No games available") );
+        noGames.appendChild( document.createTextNode("No games available today") );
         document.getElementById("placeholder").appendChild(noGames);
 
         if ( document.getElementById("info") ) deleteInfo();
@@ -151,7 +151,6 @@ function updateScore() {
     if ( games[selected][9] == 0 ) {
         dropdown.setAttribute("class", "inactive");
         inactiveGame(awayName, homeName, selected);
-        window.alert("Game has not started yet");
         return;
     } else { // remove inactive style if present
         if ( dropdown.getAttribute("class") ) dropdown.setAttribute("class","active");
@@ -279,7 +278,7 @@ function quarterTableHelper(team, quarters) {
 }
 /**
  * generate team records info
- * @param {number} game - index for selected game 
+ * @param {number} game - index for selected game
  */
 function genRecords(game) {
     var table = document.createElement("table");
@@ -323,7 +322,13 @@ function inactiveGame(awayName, homeName, game) {
     var teamsInfo = genTeamInfo(awayName, homeName);
     toUpdate.appendChild(teamsInfo);
 
+    var message = document.createElement("h1");
+    message.setAttribute("class", "message");
+    message.appendChild( document.createTextNode("Game begins at") );
+    toUpdate.appendChild(message);
+
     var gameTime = document.createElement("h2");
+    gameTime.setAttribute("class", "message");
     gameTime.appendChild( document.createTextNode( games[game][4] ) );
     toUpdate.appendChild(gameTime);
 
@@ -335,6 +340,31 @@ function inactiveGame(awayName, homeName, game) {
     toUpdate.appendChild(records);
 
     placeholder.appendChild(toUpdate);
+}
+
+/**
+ * create an alert message which will show on overlay, instead of using window.alert()
+ * @param {string} text message to appear in alert
+ */
+function displayAlert(text) {
+    var overlay = document.createElement("div");
+    overlay.setAttribute("id", "overlay");
+    overlay.setAttribute("onclick", "dismissAlert()");
+    var message = document.createElement("h1");
+    message.setAttribute("id", "overlay-message");
+    message.appendChild( document.createTextNode(text) );
+    overlay.appendChild(message);
+    var dismissText = document.createElement("h5");
+    dismissText.append( document.createTextNode("(Press to dismiss message)") );
+
+    overlay.appendChild(message);
+    overlay.appendChild(dismissText);
+    document.body.appendChild(overlay);
+}
+
+function dismissAlert() {
+    var overlay = document.getElementById("overlay");
+    overlay.remove();
 }
 
 function deleteInfo() {

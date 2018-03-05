@@ -44,7 +44,7 @@ select {
     background-repeat: no-repeat;
     background-size: 1.5rem;
     background-position: 100% 50%;
-    padding-right: 2%;
+    padding-right: 3%;
     padding-left: 5px;
 }
 
@@ -129,4 +129,43 @@ footer {
     color: #B2BD8C;
     font-size: 0.8rem;
     padding-top: 1.25rem;
+}
+
+#overlay {
+    position: fixed;
+    width: 90%;
+    height: 68%;
+    top: 3%;
+    left: 5%;
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.9);
+    cursor: pointer;
+}
+
+#overlay-message,
+#overlay > h5 {
+    color: white;
+    margin-top: 8%;
+}
+
+@media all and (max-width:750px) {
+    select {
+        width: 98%;
+        font-size: 1.9rem;
+    }
+}
+
+.message {
+    margin-bottom: 0.5rem;
+    animation-name: blink;
+    animation-duration: 0.7s;
+    animation-timing-function: cubic-bezier(1, 0, 0.2, 1);
+    animation-iteration-count: infinite;
+    animation-play-state: running;
+    animation-direction: alternate;
+}
+
+@keyframes blink {
+    from {color: red;}
+    to {color: transparent;}
 }
