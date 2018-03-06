@@ -31,12 +31,14 @@ p {
 }
 
 select {
+    font-family: Roboto, Arial;
     font-size: 2rem;
     color: #00008b;
     background-color: #F5F5F5;
     border: hidden;
     border-radius: 0.5rem;
     margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
     -moz-appearance: none;
     -webkit-appearance: none;
     appearance: none;
@@ -148,10 +150,29 @@ footer {
     margin-top: 8%;
 }
 
-@media all and (max-width:750px) {
+@media all and (max-width:500px) and (orientation:portrait) {
     select {
         width: 98%;
-        font-size: 1.9rem;
+        font-size: 1.3rem;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+}
+
+@media all and (max-width:455px)
+and (orientation:portrait) {
+    select {
+        width: 99%;
+        font-size: 1.6rem;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+}
+
+@media all and (max-width:370px)
+and (orientation:portrait) {
+    select {
+        font-size: 1.35rem;
     }
 }
 
