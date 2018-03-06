@@ -391,6 +391,24 @@ function refresh(data) {
     dropdown.value = selectedGame;  //restore selected game in dropdown, to reflect displayed
     updateScore();
 }
+/**
+ * for buttons to navigate scroll 
+ * @param {string} direction - either right or left 
+ */
+function arrowNav(direction) {
+    var dropdown = document.getElementById("dropdown");
+    var selected = +dropdown.value //string to num
+
+    if ( direction === "l" ) {
+        if ( selected === 0 ) return;
+        dropdown.value = +dropdown.value - 1;
+        updateScore();
+    } else if (direction === "r") {
+        if ( selected === dropdown.options.length - 1 ) return;
+        dropdown.value = +dropdown.value + 1;
+        updateScore();
+    }
+}
 
 // initiates upon loading page
 function pageLoad() {

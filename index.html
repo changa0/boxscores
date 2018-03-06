@@ -11,23 +11,25 @@
 </head>
 
 <body>
-    <h1>Box Scores</h1>
+    <h2>Box Scores</h2>
     <p>Get a box score from today's games</p>
     <form name="games">
         <select id="dropdown" onchange="updateScore()"></select>
     </form>
     <div class="buttons" >
+        <button type="button" class="directional" onclick="arrowNav('l')">&laquo;</button>
         <button type="button" onclick="requestRefresh()">Update scores</button>
+        <button type="button" class="directional" onclick="arrowNav('r')">&raquo;</button>
     </div>
     <div id="placeholder"></div>
 
-    <footer> 
+    <footer>
         Copyright &copy; 2018 AC. All rights reserved.
         <br>
         Data retrieved from stats.nba.com
 
     </footer>
-   
+
     <script type="text/javascript" src="main.js"></script>
 
 </body>

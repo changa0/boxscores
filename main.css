@@ -69,10 +69,11 @@ button {
     background-color: #B3B3B3;
     margin-left: 0.5rem;
     margin-right: 0.5rem;
-    font-size: 1rem;
+    font-family: Roboto;
+    font-size: 1.25rem;
     font-weight: 600;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
 }
 
 button:hover {
@@ -150,30 +151,43 @@ footer {
     margin-top: 8%;
 }
 
-@media all and (max-width:500px) and (orientation:portrait) {
-    select {
-        width: 98%;
-        font-size: 1.3rem;
-        padding-top: 5px;
-        padding-bottom: 5px;
+.directional {
+    display: none;
+}
+
+@media all and (max-width:1200px) {
+    .directional {
+        display: inline-block;
+        margin-left: 3rem;
+        margin-right: 3rem;
+        font-size: 2.3rem;
+        border-radius: 30%;
+        padding-top: 0;
+        padding-bottom: 0.3rem;
     }
 }
 
-@media all and (max-width:455px)
-and (orientation:portrait) {
+@media all and (max-width:500px) {
     select {
-        width: 99%;
         font-size: 1.6rem;
+        text-align: center;
         padding-top: 8px;
         padding-bottom: 8px;
+        background-image: none;
+    }
+    .directional {
+        padding-bottom: 0.45rem;
+        border-radius: 30%;
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 2.2rem;
     }
 }
 
-@media all and (max-width:370px)
+@media all and (max-width:368px)
 and (orientation:portrait) {
-    select {
-        font-size: 1.35rem;
-    }
+    select { font-size: 1.35rem; }
+    .directional { margin: auto; }
 }
 
 .message {
