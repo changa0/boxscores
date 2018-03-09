@@ -27,7 +27,7 @@ EastConfStandingsByDay resultSets[4]    all east teams win loss, home and road r
 WestConfStandingsByDay resultSets[5]
 Available resultSets[6]                 game id + "PT_AVAILABLE", not sure what stands for
 
-**Warning** LineScore order of teams in future games is sometimes mixed up, not sure if automated? Supposed to be visitor then home to reflect the GameHeader, but inconsistently and erroneously shows home then away team sometimes. Compare to GameHeader and LastMeeting which are consistently in correct corresponding order. Might need function to verify correct team? UPDATE: seems like they correct the values on day of game, but keep in mind might show teams mixed up on games not yet played
+**Warning** LineScore order of teams in future games is sometimes mixed up (typically home-away flip, occasionally all teams scrambled), not sure if because of errors in automation on nba server side? Supposed to be visitor then home to reflect the GameHeader, but inconsistently and erroneously shows home then away team sometimes. Compare to GameHeader and LastMeeting which are consistently in correct corresponding order. Might need function to verify correct team? UPDATE: seems like they correct the values on day of game, but keep in mind might show teams mixed up on games not yet played
 
 Box score quick summary: shows refs, inactive players
 boxscoresummaryv2
@@ -141,6 +141,29 @@ GameID=0021700480
 http://stats.nba.com/stats/teamdashboardbygeneralsplits
 "SeasonType is required; TeamID is required; MeasureType is required; PerMode is required; PlusMinus is required; PaceAdjust is required; Rank is required; Season is required; The Outcome property is required.; The Location property is required.; Month is required; The SeasonSegment property is required.; The DateFrom property is required.; The DateTo property is required.; OpponentTeamID is required; The VsConference property is required.; The VsDivision property is required.; The GameSegment property is required.; Period is required; LastNGames is required"
 
+### data.nba.com ###
+pbp stands for play-by-play
+
+Today
+https://data.nba.net/10s/prod/v3/today.json
+
+shows json available, endpoints for today's games
+
+box scores in stats.nba/com appear to get the live scores from
+https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2017/scores/gamedetail/GAMEID_gamedetail.json
+where [GAMEID] is the gameid number
+example:
+https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2017/scores/gamedetail/0021700965_gamedetail.json
+- there are CORS restrictions, seems to need some sort of browser session token (or maybe TCP kept alive) to retrieve with cross origin.
+- For instance, a tested example. Tried accessing link using XHTTP/AJAX on different site but access is not allowed, however if open the game boxscore in corresponding stats.nba.com/game/GAMEID page, then try AJAX on other site to access, will retrieve the data. 
+- Browser sessions separate results, e.g. incognito from regular session. Would have to repeat process by opening stats.nba page in the session and then making the XHTTP call afterwards.
+- Access or connection seems to have a time restricted period, times out after ~10 minutes, before restricting access again? (possibly erroneous. Further testing suggest it is related to activity or maintaining focus on the tab/window with the nba.stats.com game page)
+- However, clicking or focus on the stats.nba game page (no refresh necessary either) will allow cross origin XHTTP calls again, for unspecified amount of time (inconsistent, but seems to keep alive as long as window is focused, or the game tab is selected/focused on non-focused browser window)
+- Overall using this link through cross origin XHTTP AJAX seems non-viable due to restrictions
+- same is true for other links in data.nba.net (example: https://data.nba.net/prod/v1/20180307/0021700969_boxscore.json)
+
+https://data.nba.net/prod/v2/YYYYMMDD/scoreboard.json
+Scoreboard for a date in YYYYMMDD no slashes
 
 custom dropdown icon source
 https://cdn3.iconfinder.com/data/icons/google-material-design-icons/48/ic_keyboard_arrow_down_48px-128.png 

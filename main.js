@@ -190,7 +190,7 @@ function updateScore() {
     var recordsHeader = document.createElement("h3");
     text = document.createTextNode("Team Records");
     recordsHeader.appendChild(text);
-    var records = genRecords(selected);
+    var records = genRecords(selected, 0);
     records.setAttribute("id", "record-table");
 
     toUpdate.appendChild(recordsHeader);
@@ -277,16 +277,25 @@ function quarterTableHelper(team, quarters) {
     return row;
 }
 /**
- * generate team records info
+ * generate team records info, fix if server returns data in opposite order
  * @param {number} game - index for selected game
+ * @param {number} fix - flag to fix or not
  */
-function genRecords(game) {
+function genRecords(game, fix) {
     var table = document.createElement("table");
-    var rowData = [ lineScore[2*game][4], "(" + lineScore[2*game][6] + ")" ];
-    var row = rowHelper(rowData);
-    table.appendChild(row);
-
-    rowData = [ lineScore[ 2*game+1 ][4], "(" + lineScore[ 2*game+1 ][6] + ")" ];
+    var team1 = [ lineScore[2*game][4], "(" + lineScore[2*game][6] + ")" ];
+    var team2 = [ lineScore[ 2*game+1 ][4], "(" + lineScore[ 2*game+1 ][6] + ")" ];
+    if ( fix === 1 ) {
+        var rowData = team2;
+        var row = rowHelper(rowData);
+        table.appendChild(row);
+        rowData = team1;
+    } else {
+        var rowData = team1;
+        var row = rowHelper(rowData);
+        table.appendChild(row);
+        rowData = team2;
+    }
     row = rowHelper(rowData);
     table.appendChild(row);
     return table;
@@ -334,11 +343,15 @@ function inactiveGame(awayName, homeName, game) {
 
     var recordsHeader = document.createElement("h3");
     recordsHeader.appendChild( document.createTextNode("Team Records") );
-    var records = genRecords(game);
+    if ( lastMeeting[game][11] === lineScore[2*game][4] ) { // check team match
+        var records = genRecords(game, 0);
+    } else {
+        var records = genRecords(game, 1);                  // or else fix
+    }
     records.setAttribute("id", "record-table");
+
     toUpdate.appendChild(recordsHeader);
     toUpdate.appendChild(records);
-
     placeholder.appendChild(toUpdate);
 }
 
@@ -392,8 +405,8 @@ function refresh(data) {
     updateScore();
 }
 /**
- * for buttons to navigate scroll 
- * @param {string} direction - either right or left 
+ * for buttons to navigate scroll
+ * @param {string} direction - either right or left
  */
 function arrowNav(direction) {
     var dropdown = document.getElementById("dropdown");
