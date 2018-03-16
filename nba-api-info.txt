@@ -165,5 +165,36 @@ https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2017/scores/gamedetail
 https://data.nba.net/prod/v2/YYYYMMDD/scoreboard.json
 Scoreboard for a date in YYYYMMDD no slashes
 
+
+Box score for game detail
+https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/{YYYY}/scores/gamedetail/{GAMEID}_gamedetail.json
+
+{YYYY} season year, e.g. 2017 for 2017-18 season
+{GAMEID} gameid, get from scoreboard
+
+JSON values/examples
+g game, use by default from response, e.g. xhr.response.g
+vls: visitor line score
+hls: home line score
+vls.tc: visiting team city
+vls.tn: visiting team name
+lpla.vs: visitor score
+lpla.hs: home score
+stt: (string status e.g. 3rd quarter, end of 1st, final)
+cl: (string) clock
+p: (number) quarter
+pstsg: player stats
+pstsg[0].fn: first name
+pstsg[#].court: whether on court or not, starters have 1 at game start, after
+"".blka: (number) blocked attempts
+"".pm: plus minus
+"".tf: technical fouls
+"".status: active or inactive
+"".pos: shows player positions for only starters
+
+example:
+https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2017/scores/gamedetail/0021700965_gamedetail.json
+
+
 custom dropdown icon source
-https://cdn3.iconfinder.com/data/icons/google-material-design-icons/48/ic_keyboard_arrow_down_48px-128.png 
+https://cdn3.iconfinder.com/data/icons/google-material-design-icons/48/ic_keyboard_arrow_down_48px-128.png

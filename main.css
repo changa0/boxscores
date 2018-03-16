@@ -134,6 +134,8 @@ footer {
     padding-top: 1.25rem;
 }
 
+a {color: #979B89}
+
 #overlay {
     position: fixed;
     width: 90%;
