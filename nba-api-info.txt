@@ -196,5 +196,7 @@ example:
 https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2017/scores/gamedetail/0021700965_gamedetail.json
 
 
+stats.nba.com blocks certain hosts such as Heroku, AWS, DigitalOcean, DreamHost
+
 custom dropdown icon source
 https://cdn3.iconfinder.com/data/icons/google-material-design-icons/48/ic_keyboard_arrow_down_48px-128.png
