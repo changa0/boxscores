@@ -102,12 +102,51 @@ table {
     margin-right: auto;
 }
 
-#table-area {
-    overflow: auto;
-}
-
 #quarter-table {
     font-size: 1.3rem;
+}
+
+#quarter-table th,
+#quarter-table tr:last-child {
+    background-color: #b1c6f8;
+}
+
+.box-area {
+    padding-top: 0.5rem;
+}
+
+.box-area > h2 {
+    text-align: left;
+    padding-left: 15%;
+}
+
+.box-table {
+    width: 80%;
+    height: 60%;
+    border-collapse: collapse;
+}
+
+.box-table td:first-child {
+    text-align: left;
+    padding-left: 0.5rem;
+}
+
+.box-table th:nth-child(n+2),
+.box-table td:nth-child(n+2) {
+    text-align: right;
+}
+
+.box-table > thead,
+.box-table > tbody > tr:nth-child(even) {
+    background-color: #CECECE;
+}
+
+.box-table > tbody > tr:hover {
+    background-color: #F3F3AF;
+}
+
+.on-court {
+    font-weight: bold;
 }
 
 #record-table {
@@ -122,10 +161,6 @@ table {
 td, th {
     text-align: center;
     padding:0.2rem;
-}
-
-th, tr:nth-child(even) {
-    background-color: #b1c6f8;
 }
 
 footer {
@@ -167,6 +202,15 @@ a {color: #979B89}
         padding-top: 0;
         padding-bottom: 0.3rem;
     }
+
+    .box-table {
+        width: 90%;
+        height: auto;
+    }
+
+    .box-table > tbody > tr > td {
+        white-space: pre;
+    }
 }
 
 @media all and (max-width:500px) {
@@ -183,6 +227,20 @@ a {color: #979B89}
         margin-left: auto;
         margin-right: auto;
         font-size: 2.2rem;
+    }
+
+    .box-table {
+        width: auto;
+        height: auto;
+        font-size: 0.9rem;
+        display: block;
+        overflow-x: scroll;
+        overflow-y: visible;
+    }
+
+    .box-area > h2 {
+        text-align: center;
+        padding-left: 0%;
     }
 }
 
@@ -205,4 +263,24 @@ and (orientation:portrait) {
 @keyframes blink {
     from {color: red;}
     to {color: transparent;}
+}
+
+.tooltippable span {
+    visibility: hidden;
+    color: #F7FFCF;
+    background-color: black;
+    width: 190px;
+    padding: 2px 5px;
+    border-radius: 5px;
+    position: absolute;
+    top: 30%;
+    right: 11%;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 500ms;
+}
+
+.tooltippable:hover span {
+    visibility: visible;
+    opacity: 1;
 }
