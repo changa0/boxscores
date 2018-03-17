@@ -1,13 +1,17 @@
 "use strict";
-const NBA_STATS_URL = "https://stats.nba.com/stats/";
 const SCOREBOARD_URL = "https://stats.nba.com/stats/scoreboard/?GameDate=";
 const SCOREBOARD_URL_SUFFIX = "&LeagueID=00&DayOffset=0&callback=getGames&noCache=";
 const SCOREBOARD_URL_REFRESH = "&LeagueID=00&DayOffset=0&callback=refresh&noCache=";
+const GAME_URL_PRE = "https://data.nba.com/data/v2015/json/mobile_teams/nba/";
+const GAME_URL_PART = "/scores/gamedetail/";
+const GAME_URL_SUFFIX = "_gamedetail.json";
+const PROXY_URL = "https://corsrouter.herokuapp.com/";
 
 var scoreboard;     // stores full returned data for scoreboard jsonp request
 var games;          // stores GameHeader object from jsonp request
 var lineScore;      // stores LineScore object from jsonp request
 var lastMeeting;    // stores LastMeeting
+var gameJSON;
 
 pageLoad();
 
@@ -27,6 +31,16 @@ function getDate() {
     var formatted = new Intl.DateTimeFormat("en-US", options).format(date);
 
     return [formatted, noCache];
+}
+
+/**
+ * generate url for xhr json request
+ * @param {string} season season in year, ex: 2017 is 2017-18 season
+ * @param {string} gameId gameID for specific game
+ */
+function genUrl(season, gameId) {
+    var url = PROXY_URL + GAME_URL_PRE + season + GAME_URL_PART + gameId + GAME_URL_SUFFIX;
+    return url;
 }
 
 /**
@@ -50,6 +64,7 @@ function requestGames() {
  */
 function debugDate(date) {
     clearDropdown(); // otherwise will iterate out of index for dropdown menu
+    if ( document.getElementById("info") ) deleteInfo();
     var script = document.createElement("script");
     var url = SCOREBOARD_URL + date + SCOREBOARD_URL_SUFFIX + Math.floor( Math.random() * 1000 );
     console.log(url);
@@ -115,8 +130,6 @@ function populateDropdown() {
     for (var game of lastMeeting) {
         var option = document.createElement("option");
         var gameIndex = lastMeeting.indexOf(game);
-        //var awayName = game[9] + " " + game[10];
-        //var homeName = game[4] + " " + game[5];
         var awayAbbrev = game[11];
         var homeAbbrev = game[6];
         var gameStatus = games[gameIndex][4]; // shows time or final
@@ -134,33 +147,55 @@ function populateDropdown() {
 }
 
 /**
- *  Updates scores for current game by removing the old table and then adding updated.
+ * @param {string} gameId string containing gameID for selected game
+ */
+function getGameJSON(gameId) {
+    var season = games[0][8];
+    var url = genUrl(season, gameId);
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.responseType = "json";
+    xhr.onload = function () {
+        gameJSON = xhr.response.g; // g for JSON key
+        formatInfo();
+    }
+    xhr.send();
+}
+
+/**
+ *  Updates scores for current game by removing the old table and then calling for game JSON
  */
 function updateScore() {
     var dropdown = document.getElementById("dropdown");
     if ( dropdown.value == "" ) dropdown.value = 0; // edge case when going from day w/ no games to day w/ games
     var selected = dropdown.value;
-    var game = lastMeeting[selected];
-    var awayName = game[9] + " " + game[10];
-    var homeName = game[4] + " " + game[5];
+    var gameId = games[selected][2];
 
     // delete info if existing
     if ( document.getElementById("info") ) deleteInfo();
 
     // check if game hasn't started yet
     if ( games[selected][9] == 0 ) {
+        var game = lastMeeting[selected];
+        var awayName = game[9] + " " + game[10];
+        var homeName = game[4] + " " + game[5];
         dropdown.setAttribute("class", "inactive");
         inactiveGame(awayName, homeName, selected);
         return;
     } else { // remove inactive style if present
         if ( dropdown.getAttribute("class") ) dropdown.setAttribute("class","active");
     }
+    getGameJSON(gameId);
+}
 
+// creates and adds the DOM elements for the formatted info
+function formatInfo() {
+    var selected = document.getElementById("dropdown").value;
     var placeholder = document.getElementById("placeholder");
-    var awayLineScore = lineScore[ 2*selected ];
-    var homeLineScore = lineScore[ 2*selected+1 ];
-    var awayScore = awayLineScore[21];
-    var homeScore = homeLineScore[21];
+    var awayName = gameJSON.vls.tc + " " + gameJSON.vls.tn;
+    var homeName = gameJSON.hls.tc + " " + gameJSON.hls.tn;
+    var awayStats = gameJSON.vls;
+    var homeStats = gameJSON.hls;
 
     //create div to contain info elements
     var toUpdate = document.createElement("div");
@@ -170,22 +205,28 @@ function updateScore() {
     var teamsInfo = genTeamInfo(awayName, homeName);
     toUpdate.appendChild(teamsInfo);
 
-    var scores = formatScoreText(awayScore, homeScore);
+    var scores = formatScoreText( gameJSON.lpla.vs, gameJSON.lpla.hs );
     toUpdate.appendChild(scores[0]);
     toUpdate.appendChild(scores[1]);
     toUpdate.appendChild(scores[2]);
 
     var period = document.createElement("h2");
-    if ( games[selected][4] == "Final" ) {
+    if ( gameJSON.stt === "Final" ) {
         text = document.createTextNode("Final");
     } else {
-        text = document.createTextNode( "Q" + games[selected][9] + "\xa0\xa0" + games[selected][10] );
+        var clock = gameJSON.cl.replace(/^0+/, '');
+        text = document.createTextNode( gameJSON.stt + "\xa0\xa0" + clock );
     }
     period.appendChild(text);
     toUpdate.appendChild(period);
 
-    var quarterTable = genQuarterTable( selected, awayLineScore, homeLineScore );
+    var quarterTable = genQuarterTable( awayStats, homeStats );
     toUpdate.appendChild(quarterTable);
+
+    var awayBox = genBox(awayStats, awayName);
+    var homeBox = genBox(homeStats, homeName);
+    toUpdate.appendChild(awayBox);
+    toUpdate.appendChild(homeBox);
 
     var recordsHeader = document.createElement("h3");
     text = document.createTextNode("Team Records");
@@ -224,8 +265,8 @@ function formatScoreText(left, right) {
     return [leftElement, center, rightElement];
 }
 
-function genQuarterTable(game, away, home) {
-    var currentQuarter = games[game][9];
+function genQuarterTable(awayStats, homeStats) {
+    var currentQuarter = gameJSON.p;
     var tbl = document.createElement("table");
     var tblHead = document.createElement("thead");
     var tblBody = document.createElement("tbody");
@@ -244,8 +285,8 @@ function genQuarterTable(game, away, home) {
     header += "</tr>";
     tblHead.innerHTML = header;
 
-    var awayRow = quarterTableHelper( away, currentQuarter );
-    var homeRow = quarterTableHelper( home, currentQuarter );
+    var awayRow = quarterTableHelper( awayStats, currentQuarter );
+    var homeRow = quarterTableHelper( homeStats, currentQuarter );
     tblBody.appendChild(awayRow);
     tblBody.appendChild(homeRow);
     tbl.appendChild(tblHead);
@@ -254,20 +295,22 @@ function genQuarterTable(game, away, home) {
     return tbl;
 }
 
-function quarterTableHelper(team, quarters) {
+function quarterTableHelper(team, quarter) {
     var row = document.createElement("tr");
     var cell = document.createElement("td");
-    var cellText = document.createTextNode(team[4]);
+    var cellText = document.createTextNode(team.ta);
 
     cell.appendChild(cellText);
     row.appendChild(cell);
 
-    var counter = 4;
-    if ( quarters > 4 ) counter = quarters;
-    for ( var i = 0; i < counter; i++ ) {
+    var counter = 4; // make 4 cells/quarters min
+    if ( quarter > 4 ) counter = quarter;
+    for ( var i = 1; i <= counter; i++ ) {
         cell = document.createElement("td");
-        if ( i < quarters ) {
-            cellText = document.createTextNode(team[7 + i]);
+        if ( i < 5 && i <= quarter ) {
+            cellText = document.createTextNode( team["q" + i] );
+        } else if ( i > 4 ) {
+            cellText = document.createTextNode( team["ot" + (i - 4)] );
         } else { // if quarter hasn't been played yet
             cellText = document.createTextNode("-");
         }
@@ -276,6 +319,63 @@ function quarterTableHelper(team, quarters) {
     }
     return row;
 }
+
+function genBox(team , teamName) {
+    var boxData = team.pstsg; //player stats
+    var div = document.createElement("div");
+    div.setAttribute("class", "box-area");
+    var label = document.createElement("h2");
+    label.appendChild( document.createTextNode(teamName) );
+    div.appendChild(label);
+    var inactive = [];
+
+    var tbl = document.createElement("table");
+    var tblHead = document.createElement("thead");
+    var tblBody = document.createElement("tbody");
+    var headData = [ "", "Pos", "Min", "Pts", "FG", "3Pt", "FT", "Reb", "Off", "Def", "Ast", "Blk", "Stl", "TO", "BA", "PF", "+/-" ];
+    var header = rowHelper(headData, "th");
+    tblHead.appendChild(header);
+    var key = "Off: Offensive rebounds<br>Def: Defensive rebounds<br>BA: Blocked shot attempts";
+    var tooltip = document.createElement("span");
+    tooltip.innerHTML = key;
+    tblHead.setAttribute("class", "tooltippable");
+    tblHead.appendChild(tooltip);
+
+    for (var p of boxData) {
+        var name = p.fn + " " + p.ln;
+        if ( p.status === "I" ) {
+            inactive.push(name);
+            continue;
+        }
+        var time = p.min + ":" + (function(s) {if (s < 10) s = "0" + s; return s;})(p.sec);
+        var fg = p.fgm + "-" + p.fga;
+        var tp = p.tpm + "-" + p.tpa;
+        var ft = p.ftm + "-" + p.fta;
+        var rowData = [ name, p.pos, time, p.pts, fg, tp, ft, p.reb, p.oreb, p.dreb, p.ast, p.blk, p.stl, p.tov, p.blka, p.pf, p.pm];
+        var row = rowHelper(rowData, "td");
+        if ( p.court === 1 ) row.setAttribute("class", "on-court");
+        tblBody.appendChild(row);
+    }
+    tbl.appendChild(tblHead);
+    tbl.appendChild(tblBody);
+    tbl.setAttribute("class", "box-table");
+    div.appendChild(tbl);
+
+    var text = "Inactive: ";
+    for ( var i = 0; i < inactive.length; i++ ) {
+        if ( i < inactive.length - 1) {
+            text += inactive[i] + " | ";
+        } else {
+            text += inactive[i];
+        }
+    }
+    var extra = document.createElement("h4");
+    extra.appendChild( document.createTextNode(text) );
+    div.appendChild(extra);
+
+    return div;
+}
+
 /**
  * generate team records info, fix if server returns data in opposite order
  * @param {number} game - index for selected game
@@ -287,16 +387,16 @@ function genRecords(game, fix) {
     var team2 = [ lineScore[ 2*game+1 ][4], "(" + lineScore[ 2*game+1 ][6] + ")" ];
     if ( fix === 1 ) {
         var rowData = team2;
-        var row = rowHelper(rowData);
+        var row = rowHelper(rowData, "td");
         table.appendChild(row);
         rowData = team1;
     } else {
         var rowData = team1;
-        var row = rowHelper(rowData);
+        var row = rowHelper(rowData, "td");
         table.appendChild(row);
         rowData = team2;
     }
-    row = rowHelper(rowData);
+    row = rowHelper(rowData, "td");
     table.appendChild(row);
     return table;
 }
@@ -304,12 +404,13 @@ function genRecords(game, fix) {
 /**
  * use for creating table rows
  * @param {array} rowData - an array of strings for table data cells
+ * @param {string} cellType - specifies th or td
  */
-function rowHelper(rowData) {
+function rowHelper(rowData, cellType) {
     var row = document.createElement("tr");
 
     for (var text of rowData) {
-        var cell = document.createElement("td");
+        var cell = document.createElement(cellType);
         var cellText = document.createTextNode(text);
         cell.appendChild(cellText);
         row.appendChild(cell);
@@ -404,6 +505,7 @@ function refresh(data) {
     dropdown.value = selectedGame;  //restore selected game in dropdown, to reflect displayed
     updateScore();
 }
+
 /**
  * for buttons to navigate scroll
  * @param {string} direction - either right or left
