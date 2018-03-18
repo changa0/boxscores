@@ -29,6 +29,8 @@ Available resultSets[6]                 game id + "PT_AVAILABLE", not sure what 
 
 **Warning** LineScore order of teams in future games is sometimes mixed up (typically home-away flip, occasionally all teams scrambled), not sure if because of errors in automation on nba server side? Supposed to be visitor then home to reflect the GameHeader, but inconsistently and erroneously shows home then away team sometimes. Compare to GameHeader and LastMeeting which are consistently in correct corresponding order. Might need function to verify correct team? UPDATE: seems like they correct the values on day of game, but keep in mind might show teams mixed up on games not yet played
 
+*Note: LastMeeting is not always in same order as GameHeader
+
 Box score quick summary: shows refs, inactive players
 boxscoresummaryv2
 http://stats.nba.com/stats/boxscoresummaryv2

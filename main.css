@@ -211,6 +211,11 @@ a {color: #979B89}
     .box-table > tbody > tr > td {
         white-space: pre;
     }
+
+    .box-area > h2 {
+        text-align: center;
+        padding-left: 0%;
+    }
 }
 
 @media all and (max-width:500px) {
@@ -236,11 +241,6 @@ a {color: #979B89}
         display: block;
         overflow-x: scroll;
         overflow-y: visible;
-    }
-
-    .box-area > h2 {
-        text-align: center;
-        padding-left: 0%;
     }
 }
 
@@ -272,7 +272,7 @@ and (orientation:portrait) {
     width: 190px;
     padding: 2px 5px;
     border-radius: 5px;
-    position: absolute;
+    position: fixed;
     top: 30%;
     right: 11%;
     z-index: 1;

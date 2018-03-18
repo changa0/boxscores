@@ -129,17 +129,19 @@ function getGames(data) {
 function populateDropdown() {
     var dropdown = document.getElementById("dropdown");
 
-    for (var game of lastMeeting) {
+    for (var game of games) {
         var option = document.createElement("option");
-        var gameIndex = lastMeeting.indexOf(game);
-        var awayAbbrev = game[11];
-        var homeAbbrev = game[6];
-        var gameStatus = games[gameIndex][4]; // shows time or final
-        var playing = games[gameIndex][9];
+        var index = games.indexOf(game);
+        var gameCode = games[index][5];
+        var awayAbbrev = gameCode.substring(9,12);
+        var homeAbbrev = gameCode.substring(12);
+        var gameStatus = games[index][4];
+        var playing = games[index][9];
 
         option.text = awayAbbrev + " vs. " + homeAbbrev + " - " + gameStatus;
-        option.value = gameIndex;
-        if ( playing == 0 ) {
+        option.value = index;
+
+        if ( playing === 0 ) {
             option.setAttribute("class", "inactive");
         } else {
             option.setAttribute("class", "active");
@@ -188,7 +190,7 @@ function updateScore() {
     if ( document.getElementById("info") ) deleteInfo();
 
     // check if game hasn't started yet
-    if ( games[selected][9] == 0 ) {
+    if ( games[selected][9] === 0 ) {
         var game = lastMeeting[selected];
         var awayName = game[9] + " " + game[10];
         var homeName = game[4] + " " + game[5];
@@ -352,7 +354,7 @@ function genBox(team , teamName) {
     var headData = [ "", "Pos", "Min", "Pts", "FG", "3Pt", "FT", "Reb", "Off", "Def", "Ast", "Blk", "Stl", "TO", "BA", "PF", "+/-" ];
     var header = rowHelper(headData, "th");
     tblHead.appendChild(header);
-    var key = "Off: Offensive rebounds<br>Def: Defensive rebounds<br>BA: Blocked shot attempts";
+    var key = "Off: Offensive rebounds<br>Def: Defensive rebounds<br>BA: Blocked shot attempts<br>Bolded players: On court";
     var tooltip = document.createElement("span");
     tooltip.innerHTML = key;
     tblHead.setAttribute("class", "tooltippable");
@@ -386,7 +388,7 @@ function genBox(team , teamName) {
             text += inactive[i];
         }
     }
-    var extra = document.createElement("h4");
+    var extra = document.createElement("h5");
     extra.appendChild( document.createTextNode(text) );
     div.appendChild(extra);
 
@@ -461,7 +463,7 @@ function inactiveGame(awayName, homeName, game) {
 
     var recordsHeader = document.createElement("h3");
     recordsHeader.appendChild( document.createTextNode("Team Records") );
-    if ( lastMeeting[game][11] === lineScore[2*game][4] ) { // check team match
+    if ( games[game][5].substring(12) === lineScore[2*game+1][4] ) { // check team match
         var records = genRecords(game, 0);
     } else {
         var records = genRecords(game, 1);                  // or else fix
