@@ -1,7 +1,7 @@
 README.md
 
 # SlimScore
-### v1.0
+### v1.0.1
 
 ## View today's nba game scores
 

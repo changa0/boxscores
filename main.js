@@ -6,6 +6,8 @@ const GAME_URL_PRE = "https://data.nba.com/data/v2015/json/mobile_teams/nba/";
 const GAME_URL_PART = "/scores/gamedetail/";
 const GAME_URL_SUFFIX = "_gamedetail.json";
 const PROXY_URL = "https://corsrouter.herokuapp.com/";
+var initialLoad = 1;
+var messagePresent = 0; // indicate if message text is currently present
 
 var scoreboard;     // stores full returned data for scoreboard jsonp request
 var games;          // stores GameHeader object from jsonp request
@@ -156,8 +158,19 @@ function getGameJSON(gameId) {
     xhr.open("GET", url);
     xhr.responseType = "json";
     xhr.onload = function () {
-        gameJSON = xhr.response.g; // g for JSON key
-        formatInfo();
+        if (initialLoad || messagePresent === 1 ) deleteMessage();
+        if ( xhr.status === 200 || xhr.status === 304 ) {
+            gameJSON = xhr.response.g; // g for JSON key
+            formatInfo();
+        } else if ( xhr.status === 403 ) {
+            genMessage("Error: Proxy rejected non-whitelisted domain");
+        } else if ( xhr.status === 429 ) {
+            genMessage("Too many requests. Server is restricted to 12 requests per minute");
+        } else {
+            genMessage("An error occurred while retrieving live game data");
+        }
+        console.timeEnd();
+        if ( initialLoad ) initialLoad = null;
     }
     xhr.send();
 }
@@ -184,6 +197,10 @@ function updateScore() {
         return;
     } else { // remove inactive style if present
         if ( dropdown.getAttribute("class") ) dropdown.setAttribute("class","active");
+    }
+    if (initialLoad) {     // upon first load, may need to wait for heroku dyno
+        genMessage("Waiting for dyno...");
+        console.time();
     }
     getGameJSON(gameId);
 }
@@ -454,6 +471,23 @@ function inactiveGame(awayName, homeName, game) {
     toUpdate.appendChild(recordsHeader);
     toUpdate.appendChild(records);
     placeholder.appendChild(toUpdate);
+}
+
+// generates red message for alerts regarding proxy requests
+function genMessage(text) {
+    var message = document.createElement("h1");
+    message.setAttribute("class", "message");
+    message.appendChild( document.createTextNode(text) );
+    document.getElementById("placeholder").appendChild(message);
+    messagePresent = 1;
+}
+
+// deletes red message used for alerts regarding proxy requests
+function deleteMessage() {
+    if ( document.getElementsByClassName("message")[0] ) {
+        document.getElementsByClassName("message")[0].remove();
+        messagePresent = 0;
+    }
 }
 
 /**
