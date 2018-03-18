@@ -218,6 +218,21 @@ a {color: #979B89}
     }
 }
 
+@media all and (max-width:800px) {
+    html, body {
+        overflow: visible;
+    }
+
+    .box-table {
+        height:auto;
+        width: 100%;
+        font-size: 1.2rem;
+        overflow-x: scroll;
+        overflow-y: visible;
+        display: block;
+    }
+}
+
 @media all and (max-width:500px) {
     select {
         font-size: 1.6rem;
@@ -235,12 +250,8 @@ a {color: #979B89}
     }
 
     .box-table {
-        width: auto;
-        height: auto;
         font-size: 0.9rem;
-        display: block;
-        overflow-x: scroll;
-        overflow-y: visible;
+        max-width: 98%;
     }
 }
 

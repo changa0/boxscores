@@ -19,3 +19,4 @@ An application with a small footprint for viewing live NBA game scores, compatib
 * Rarely, teams under team records are in upcoming games may differ from the ones selected, this is due to an issue with nba's stats api mixing up the order in the requested data
 * Similarly, the names of teams shown for inactive games may differ from teams selected in dropdown menu, due to mixed up orders in the data returned by the api (LastMeeting order different from GameHeader)
 * Google chrome version is available, uses cross origin XHR requests instead of jsonp, allowed by extension permissions. Supports live full box scores with player statistics, more responsive than github.io version since proxy is not needed, no proxy delay or sleep delays.
+* iOS small screens, table overflow scrolling doesn't seem to work, scrolls entire page instead. Inconclusive cause, possibly because table is generated dynamically.

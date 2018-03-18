@@ -171,8 +171,10 @@ function getGameJSON(gameId) {
         } else {
             genMessage("An error occurred while retrieving live game data");
         }
-        console.timeEnd();
-        if ( initialLoad ) initialLoad = null;
+        if ( initialLoad ) {
+            console.timeEnd();
+            initialLoad = null;
+        }
     }
     xhr.send();
 }
