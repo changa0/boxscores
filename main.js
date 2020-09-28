@@ -5,7 +5,8 @@ const SCOREBOARD_URL_SUFFIX = "/scoreboard.json?noCache=";
 const GAME_URL_PRE = "https://data.nba.com/data/v2015/json/mobile_teams/nba/";
 const GAME_URL_PART = "/scores/gamedetail/";
 const GAME_URL_SUFFIX = "_gamedetail.json";
-const PROXY_URL = "https://corsrouter.herokuapp.com/";
+// can't use proxy on local since not whitelisted
+const PROXY_URL = !window.location.href.match(/github.io/) ? '' : 'https://corsrouter.herokuapp.com/';
 var initialLoad = 1;
 var messagePresent = 0; // indicate if message text is currently present
 
@@ -117,6 +118,9 @@ function requestGames(date) {
 function populateDropdown(games) {
     const dropdown = document.getElementById("dropdown");
 
+    removeNoGamesAlert();
+    clearDropdown();
+
     if ( !games || games.length < 1 ) {
         displayAlert("No games available today");
         const noGames = document.createElement("h1");
@@ -127,9 +131,6 @@ function populateDropdown(games) {
         if ( document.getElementById("info") ) deleteInfo();
         return;
     }
-
-    removeNoGamesAlert();
-    clearDropdown();
 
     for (const game of games) {
         const option = document.createElement("option");
