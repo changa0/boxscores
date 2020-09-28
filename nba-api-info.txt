@@ -9,7 +9,7 @@ The others are only updated after game
 
 endpoints:
 
-Scoreboard
+Scoreboard (now has access restrictions, perhaps looks at origin so using different endpoint)
 parameters:
 1. Date
 2. LeagueID (default and should set at 00)

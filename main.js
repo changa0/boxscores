@@ -1,7 +1,7 @@
 "use strict";
-const SCOREBOARD_URL = "https://stats.nba.com/stats/scoreboard/?GameDate=";
-const SCOREBOARD_URL_SUFFIX = "&LeagueID=00&DayOffset=0&callback=getGames&noCache=";
-const SCOREBOARD_URL_REFRESH = "&LeagueID=00&DayOffset=0&callback=refresh&noCache=";
+
+const SCOREBOARD_URL = "https://data.nba.net/prod/v2/";
+const SCOREBOARD_URL_SUFFIX = "/scoreboard.json?noCache=";
 const GAME_URL_PRE = "https://data.nba.com/data/v2015/json/mobile_teams/nba/";
 const GAME_URL_PART = "/scores/gamedetail/";
 const GAME_URL_SUFFIX = "_gamedetail.json";
@@ -9,30 +9,40 @@ const PROXY_URL = "https://corsrouter.herokuapp.com/";
 var initialLoad = 1;
 var messagePresent = 0; // indicate if message text is currently present
 
-var scoreboard;     // stores full returned data for scoreboard jsonp request
-var games;          // stores GameHeader object from jsonp request
-var lineScore;      // stores LineScore object from jsonp request
 var lastMeeting;    // stores LastMeeting
 var gameJSON;
 
 pageLoad();
 
 /**
- * returns today's date, and a parameter to prevent caching of jsonp response page
+ * returns today's date, a parameter that can be used to prevent caching, and month, day, year components
 */
 function getDate() {
-    var date = new Date( Date.now() );
+    const date = new Date( Date.now() );
     // added a param to prevent caching of the jsonp response
-    var noCache = date.getTime() - 1.515e12;
+    const noCache = date.getTime() - 1.515e12;
     // set options for date format
-    var options = {
+    const options = {
         year: "numeric",
         month: "numeric",
         day: "numeric",
     };
-    var formatted = new Intl.DateTimeFormat("en-US", options).format(date);
+    const formatted = new Intl.DateTimeFormat("en-US", options).format(date);
+    const validatedDate = dateValidationHelper(formatted); // ["11/12/2014", "11", "12", "2014"]
+    const month = validatedDate[1];
+    const day = validatedDate[2];
+    const year = validatedDate[3];
 
-    return [formatted, noCache];
+    return [formatted, noCache, month, day, year];
+}
+
+/**
+ * returns the month, day, year components in format ["11/12/2014", "11", "12", "2014"]
+*/
+function dateValidationHelper(date) {
+    const dateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/;
+    const validatedDate = dateRegex.exec(date);
+    return validatedDate;
 }
 
 /**
@@ -40,122 +50,132 @@ function getDate() {
  * @param {string} season season in year, ex: 2017 is 2017-18 season
  * @param {string} gameId gameID for specific game
  */
-function genUrl(season, gameId) {
+function genUrl(gameId, season) {
     var url = PROXY_URL + GAME_URL_PRE + season + GAME_URL_PART + gameId + GAME_URL_SUFFIX;
     return url;
 }
 
 /**
- * prepares url for jsonp call, and inserts the necessary script inline
- * to invoke callback for JSONP
-*/
-function requestGames() {
-    var insertedScript = document.createElement("script");
-    var date = getDate();
-    var url = SCOREBOARD_URL + date[0] + SCOREBOARD_URL_SUFFIX + date[1];
-
-    console.log(url);
-    insertedScript.setAttribute("src", url);
-    insertedScript.setAttribute("class","jsonp-script");
-    document.body.appendChild(insertedScript);
-}
-
-/**
- * for debugging using console, get games on different dates
+ * Get games for the current date. To get games on different date for debugging, use console
  * @param {string} date - date in m{d}/d{d}/yyyy format, ex. "1/7/2018"
  */
-function debugDate(date) {
-    clearDropdown(); // otherwise will iterate out of index for dropdown menu
-    if ( document.getElementById("info") ) deleteInfo();
-    var script = document.createElement("script");
-    var url = SCOREBOARD_URL + date + SCOREBOARD_URL_SUFFIX + Math.floor( Math.random() * 1000 );
-    console.log(url);
-    script.setAttribute("src", url);
-    document.body.appendChild(script);
-}
+function requestGames(date) {
+    let noCache;
+    let games;
 
-function requestRefresh() {
-    var insertedScript = document.createElement("script");
-    var date = getDate();
-    var url = SCOREBOARD_URL + date[0] + SCOREBOARD_URL_REFRESH + date[1];
-
-    console.log(url);
-    insertedScript.setAttribute("src", url);
-    insertedScript.setAttribute("class","jsonp-script");
-    document.body.appendChild(insertedScript);
-}
-
-/**
- * takes the returned JSONP, sets data for scoreboard, games, lineScore, lastMeeting global variables
- * @param data passed from jsonp function, enclosed json object
- */
-function storeData(data) {
-    scoreboard = data;
-    games = data.resultSets[0].rowSet;
-    lineScore = scoreboard.resultSets[1].rowSet;
-    lastMeeting = scoreboard.resultSets[3].rowSet; // get lastMeeting array in scoreboard object
-}
-
-function checkNoGames() {
-    if ( games.length < 1 ) {
-        displayAlert("No games available today");
-        var noGames = document.createElement("h1");
-        noGames.setAttribute("id", "no-games");
-        noGames.appendChild( document.createTextNode("No games available today") );
-        document.getElementById("placeholder").appendChild(noGames);
-
-        if ( document.getElementById("info") ) deleteInfo();
-        return true;
+    if ( !date ) {
+        date = getDate();
+        noCache = date[1];
+    } else {
+        noCache = new Date(Date.now()).getTime() - 1.515e12;
     }
-    return false;
-}
 
-/**
- * Callback function for JSONP, runs upon page load. Need to put desired actions in jsonp callback
- * function since the dynamically inserted script is run last
- * @param data jsonp enclosed json object
- */
-function getGames(data) {
+    const validatedDate = dateValidationHelper(date);
 
-    storeData(data);
-    if ( checkNoGames() ) return;
-    populateDropdown();
-    updateScore();
+    if ( !validatedDate ) {
+        console.log("Invalid date, takes MM/DD/YYYY");
+        return;
+    }
+
+    const year = validatedDate[3];
+    const month = ( validatedDate[1].length > 1 ) ? validatedDate[1] : '0' + validatedDate[1];
+    const day = ( validatedDate[2].length > 1 ) ? validatedDate[2] : '0' + validatedDate[2];
+    const formattedDateComponent = year + month + day;
+
+    const url = SCOREBOARD_URL + formattedDateComponent + SCOREBOARD_URL_SUFFIX + noCache;
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.responseType = "json";
+    console.time();
+    xhr.onload = () => {
+        if (initialLoad || messagePresent === 1 ) deleteMessage();
+        if ( xhr.status === 200 || xhr.status === 304 ) {
+            games = xhr.response.games;
+            populateDropdown(games);
+        } else if ( xhr.status === 403 ) {
+            genMessage("Error: Proxy rejected non-whitelisted domain");
+        } else if ( xhr.status === 429 ) {
+            genMessage("Too many requests. Server is restricted to 12 requests per minute");
+        } else {
+            genMessage("An error occurred while retrieving live game data");
+        }
+        if ( initialLoad ) {
+            console.timeEnd();
+            initialLoad = null;
+        }
+    }
+    xhr.send();
+
+    console.log(url);
+    return;
 }
 
 /**
  * populates the dropdown menu with current day's games
 */
-function populateDropdown() {
-    var dropdown = document.getElementById("dropdown");
+function populateDropdown(games) {
+    const dropdown = document.getElementById("dropdown");
 
-    for (var game of games) {
-        var option = document.createElement("option");
-        var index = games.indexOf(game);
-        var gameCode = games[index][5];
-        var awayAbbrev = gameCode.substring(9,12);
-        var homeAbbrev = gameCode.substring(12);
-        var gameStatus = games[index][4];
-        var playing = games[index][9];
+    if ( !games || games.length < 1 ) {
+        displayAlert("No games available today");
+        const noGames = document.createElement("h1");
+        noGames.setAttribute("id", "no-games");
+        noGames.appendChild( document.createTextNode("No games available today") );
+        document.getElementById("placeholder").appendChild(noGames);
 
-        option.text = awayAbbrev + " vs. " + homeAbbrev + " - " + gameStatus;
-        option.value = index;
+        if ( document.getElementById("info") ) deleteInfo();
+        return;
+    }
 
-        if ( playing === 0 ) {
+    removeNoGamesAlert();
+    clearDropdown();
+
+    for (const game of games) {
+        const option = document.createElement("option");
+        const gameId = game.gameId;
+        const season = game.seasonYear;
+
+        const awayAbbrev = game.vTeam.triCode;
+        const awayRecord = `${game.vTeam.win}-${game.vTeam.loss}`;
+        const homeAbbrev = game.hTeam.triCode;
+        const homeRecord = `${game.hTeam.win}-${game.hTeam.loss}`;
+        const gameStatus = game.statusNum; // seems 1 is yet to play, 2 is probably in progress, 3 is finished
+        let gameStatusMessage;
+
+        const playing = (game.period > 0) ? 1 : 0;
+        option.value = gameId;
+        option.setAttribute("data-status", gameStatus);
+        option.setAttribute("data-season", season);
+        option.setAttribute("data-away-record", awayRecord);
+        option.setAttribute("data-home-record", homeRecord);
+
+        if ( playing === 0 && gameStatus === 1 ) {
+            const startTime = game.startTimeEastern;
+            gameStatusMessage = `- ${startTime}`;
             option.setAttribute("class", "inactive");
+        } else if ( gameStatus === 2 ) {
+            gameStatusMessage = `- ${startTime}`;
+            option.setAttribute("class", "active");
         } else {
+            gameStatusMessage = '- Final';
             option.setAttribute("class", "active");
         }
+
+        option.text = `${awayAbbrev} vs. ${homeAbbrev} ${gameStatusMessage}`;
+
         dropdown.appendChild(option);
     }
+
+    updateScore();
+    return;
 }
 
 /**
  * @param {string} gameId string containing gameID for selected game
  */
-function getGameJSON(gameId) {
-    var season = games[0][8];
-    var url = genUrl(season, gameId);
+function getGameJSON(gameId, season) {
+    var url = genUrl(gameId, season);
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url);
     xhr.responseType = "json";
@@ -183,21 +203,29 @@ function getGameJSON(gameId) {
  *  Updates scores for current game by removing the old table and then calling for game JSON
  */
 function updateScore() {
-    var dropdown = document.getElementById("dropdown");
+    const dropdown = document.getElementById("dropdown");
     if ( dropdown.value == "" ) dropdown.value = 0; // edge case when going from day w/ no games to day w/ games
-    var selected = dropdown.value;
-    var gameId = games[selected][2];
+
+    const selected = dropdown.selectedIndex; // selected option
+    const gameId = dropdown.value;
+    const season = dropdown[selected].getAttribute("data-season");
+    const status = dropdown[selected].getAttribute("data-status");
 
     // delete info if existing
     if ( document.getElementById("info") ) deleteInfo();
 
     // check if game hasn't started yet
-    if ( games[selected][9] === 0 ) {
-        var game = lastMeeting[selected];
-        var awayName = game[9] + " " + game[10];
-        var homeName = game[4] + " " + game[5];
+    if ( status === '1' ) {
+        // var awayName = game[9] + " " + game[10]; // was previously full name, but not provided data later
+        // var homeName = game[4] + " " + game[5];
+        const awayName = dropdown[selected].text.substring(0,3);
+        const homeName = dropdown[selected].text.substring(8,11);
+        const awayRecord = dropdown[selected].getAttribute("data-away-record");
+        const homeRecord = dropdown[selected].getAttribute("data-home-record");
+        const gameTime = dropdown[selected].text.substring(14);
+
         dropdown.setAttribute("class", "inactive");
-        inactiveGame(awayName, homeName, selected);
+        inactiveGame(homeName, awayName, homeRecord, awayRecord, gameTime);
         return;
     } else { // remove inactive style if present
         if ( dropdown.getAttribute("class") ) dropdown.setAttribute("class","active");
@@ -206,17 +234,22 @@ function updateScore() {
         genMessage("Waiting for dyno...");
         console.time();
     }
-    getGameJSON(gameId);
+    getGameJSON(gameId, season);
 }
 
 // creates and adds the DOM elements for the formatted info
 function formatInfo() {
-    var selected = document.getElementById("dropdown").value;
+    const dropdown = document.getElementById("dropdown");
+    const selected = dropdown.selectedIndex;
     var placeholder = document.getElementById("placeholder");
     var awayName = gameJSON.vls.tc + " " + gameJSON.vls.tn;
+    const awayAbbrev = gameJSON.vls.ta;
     var homeName = gameJSON.hls.tc + " " + gameJSON.hls.tn;
+    const homeAbbrev = gameJSON.hls.ta;
     var awayStats = gameJSON.vls;
     var homeStats = gameJSON.hls;
+    const awayRecord = dropdown[selected].getAttribute("data-away-record");
+    const homeRecord = dropdown[selected].getAttribute("data-home-record");
 
     //create div to contain info elements
     var toUpdate = document.createElement("div");
@@ -252,7 +285,7 @@ function formatInfo() {
     var recordsHeader = document.createElement("h3");
     text = document.createTextNode("Team Records");
     recordsHeader.appendChild(text);
-    var records = genRecords(selected, 0);
+    const records = genRecords(homeAbbrev, awayAbbrev, homeRecord, awayRecord);
     records.setAttribute("id", "record-table");
 
     toUpdate.appendChild(recordsHeader);
@@ -399,24 +432,21 @@ function genBox(team , teamName) {
 
 /**
  * generate team records info, fix if server returns data in opposite order
- * @param {number} game - index for selected game
- * @param {number} fix - flag to fix or not
+ * @param {string} home - home team abbreviation
+ * @param {string} away
+ * @param {string} homeRecord - home team record
+ * @param {string} awayRecord
  */
-function genRecords(game, fix) {
+function genRecords(home, away, homeRecord, awayRecord) {
     var table = document.createElement("table");
-    var team1 = [ lineScore[2*game][4], "(" + lineScore[2*game][6] + ")" ];
-    var team2 = [ lineScore[ 2*game+1 ][4], "(" + lineScore[ 2*game+1 ][6] + ")" ];
-    if ( fix === 1 ) {
-        var rowData = team2;
-        var row = rowHelper(rowData, "td");
-        table.appendChild(row);
-        rowData = team1;
-    } else {
-        var rowData = team1;
-        var row = rowHelper(rowData, "td");
-        table.appendChild(row);
-        rowData = team2;
-    }
+    var team1 = [ home, "(" + homeRecord + ")" ];
+    var team2 = [ away, "(" + awayRecord + ")" ];
+
+    let rowData = team2;
+    let row = rowHelper(rowData, "td");
+    table.appendChild(row);
+
+    rowData = team1;
     row = rowHelper(rowData, "td");
     table.appendChild(row);
     return table;
@@ -445,7 +475,7 @@ function rowHelper(rowData, cellType) {
  * @param {string} homeName
  * @param {number} game - index of game
  */
-function inactiveGame(awayName, homeName, game) {
+function inactiveGame(homeName, awayName, homeRecord, awayRecord, gameTime) {
     var placeholder = document.getElementById("placeholder");
     var toUpdate = document.createElement("div");
     toUpdate.setAttribute("id", "info");
@@ -458,18 +488,16 @@ function inactiveGame(awayName, homeName, game) {
     message.appendChild( document.createTextNode("Game begins at") );
     toUpdate.appendChild(message);
 
-    var gameTime = document.createElement("h2");
-    gameTime.setAttribute("class", "message");
-    gameTime.appendChild( document.createTextNode( games[game][4] ) );
-    toUpdate.appendChild(gameTime);
+    var timeMessage = document.createElement("h2");
+    timeMessage.setAttribute("class", "message");
+    timeMessage.appendChild( document.createTextNode( gameTime ) );
+    toUpdate.appendChild(timeMessage);
 
     var recordsHeader = document.createElement("h3");
     recordsHeader.appendChild( document.createTextNode("Team Records") );
-    if ( games[game][5].substring(12) === lineScore[2*game+1][4] ) { // check team match
-        var records = genRecords(game, 0);
-    } else {
-        var records = genRecords(game, 1);                  // or else fix
-    }
+
+    const records = genRecords(homeName, awayName, homeRecord, awayRecord);
+
     records.setAttribute("id", "record-table");
 
     toUpdate.appendChild(recordsHeader);
@@ -528,22 +556,6 @@ function clearDropdown() {
     if( document.getElementById("dropdown").hasChildNodes() ) document.getElementById("dropdown").innerText = "";
 }
 
-function refresh(data) {
-    var dropdown = document.getElementById("dropdown");
-    var selectedGame = dropdown.value;
-    // clean up old script
-    if ( document.getElementsByClassName("jsonp-script")[0] ) {
-        document.getElementsByClassName("jsonp-script")[0].remove();
-    }
-    storeData(data);
-    if ( checkNoGames() ) return;
-    if ( document.getElementById("no-games") ) document.getElementById("no-games").remove(); // edge case
-    clearDropdown();
-    populateDropdown();
-    dropdown.value = selectedGame;  //restore selected game in dropdown, to reflect displayed
-    updateScore();
-}
-
 /**
  * for buttons to navigate scroll
  * @param {string} direction - either right or left
@@ -561,6 +573,11 @@ function arrowNav(direction) {
         dropdown.value = +dropdown.value + 1;
         updateScore();
     }
+}
+
+// may use if the no games alert is present
+function removeNoGamesAlert() {
+    if ( document.getElementById("no-games") ) document.getElementById("no-games").remove();
 }
 
 // initiates upon loading page

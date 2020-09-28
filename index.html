@@ -17,15 +17,15 @@
     </form>
     <div class="buttons" >
         <button type="button" class="directional" onclick="arrowNav('l')">&laquo;</button>
-        <button type="button" onclick="requestRefresh()">Update scores</button>
+        <button type="button" onclick="requestGames()">Update scores</button>
         <button type="button" class="directional" onclick="arrowNav('r')">&raquo;</button>
     </div>
     <div id="placeholder"></div>
 
     <footer>
-        Copyright &copy; 2018 AC. All rights reserved.
+        Copyright &copy; 2020 AC. All rights reserved.
         <br>
-        <p title="Use developer console and command debugDate('M/D/YYYY')">
+        <p title="Use developer console and command requestGames('M/D/YYYY')">
         Data retrieved from stats.nba.com, app uses heroku to reroute data.nba.com data
         <br>View games from another date</p>
         <a href="https://github.com/changa0/boxscoreschrome">Get Chrome extension featuring full live game box scores here</a>
