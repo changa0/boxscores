@@ -142,6 +142,7 @@ function populateDropdown(games) {
         const homeAbbrev = game.hTeam.triCode;
         const homeRecord = `${game.hTeam.win}-${game.hTeam.loss}`;
         const gameStatus = game.statusNum; // seems 1 is yet to play, 2 is probably in progress, 3 is finished
+        const startTime = game.startTimeEastern;
         let gameStatusMessage;
 
         const playing = (game.period > 0) ? 1 : 0;
@@ -152,7 +153,6 @@ function populateDropdown(games) {
         option.setAttribute("data-home-record", homeRecord);
 
         if ( playing === 0 && gameStatus === 1 ) {
-            const startTime = game.startTimeEastern;
             gameStatusMessage = `- ${startTime}`;
             option.setAttribute("class", "inactive");
         } else if ( gameStatus === 2 ) {
